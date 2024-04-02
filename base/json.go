@@ -12,5 +12,5 @@ type Response2 struct {
 }
 
 func main() {
-	
+
 }
