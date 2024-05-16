@@ -1,8 +1,8 @@
-package main
+package option
 
 import "fmt"
 
-// 结构体
+// Options 结构体
 type Options struct {
 	str1 string
 	str2 string
@@ -10,7 +10,7 @@ type Options struct {
 	int2 int
 }
 
-// 传参用
+// Option 传参用
 type Option func(*Options)
 
 func InitOptions(opts ...Option) {
@@ -41,10 +41,4 @@ func WithStringOption4(int1 int) Option {
 	return func(opts *Options) {
 		opts.int2 = int1
 	}
-}
-
-// 选项设计模式
-func main() {
-	InitOptions(WithStringOption1("Kirin"), WithStringOption2("Ayuan"), WithStringOption3(5), WithStringOption4(6))
-	//grpc_retry 就是通过这个机制实现的，可以实现自动重试功能。
 }
