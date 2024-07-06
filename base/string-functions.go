@@ -29,4 +29,8 @@ func main() {
 	// 取字符串长度和通过索引获取一个字符的机制。
 	p("Len: ", len("hello"))
 	p("Char:", "hello"[1])
+
+	after, _ := str.CutPrefix("http://127.0.0.1", "xxx")
+	println(after)
+
 }
