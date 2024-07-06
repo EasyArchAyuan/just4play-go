@@ -127,3 +127,42 @@ func TestParallel(t *testing.T) {
 		fmt.Println("ccc")
 	})
 }
+
+func TestAllMatch(t *testing.T) {
+	mach := Just(2, 4).AllMach(func(item any) bool {
+		i := item.(int)
+		if i%2 == 0 {
+			return true
+		}
+		return false
+	})
+	t.Log(mach)
+}
+
+func TestMapReduce(t *testing.T) {
+	result, err := From(func(source chan<- interface{}) {
+		for i := 0; i < 10; i++ {
+			source <- i
+		}
+	}).Map(func(item interface{}) interface{} {
+		i := item.(int)
+		return i * i // 给每个数平方
+	}).Filter(func(item interface{}) bool {
+		i := item.(int)
+		return i%2 == 0 // 筛选平方后的数中的偶数
+	}).Distinct(func(item interface{}) interface{} {
+		return item
+	}).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		var result int
+		for item := range pipe {
+			i := item.(int)
+			result += i // 累加
+		}
+		return result, nil
+	})
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("result: ", result)
+	}
+}
