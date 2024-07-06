@@ -58,6 +58,12 @@ func (w writeChan) Load() interface{} {
 	return <-w.write
 }
 
+func drain(channel <-chan interface{}) {
+	for range channel {
+
+	}
+}
+
 // 通过传入的generate方法产生数据，并返回source提供给mapper读取
 func buildSource(generate GenerateFunc) chan interface{} {
 	source := make(chan interface{})
@@ -173,12 +179,7 @@ func MapReduce(generate GenerateFunc, mapper MapperFunc, reducer ReducerFunc) (i
 
 }
 
-func drain(channel <-chan interface{}) {
-	for range channel {
-
-	}
-}
-
+// Finish 批量执行函数
 func Finish(fns ...func() error) error {
 	_, err := MapReduce(func(source chan<- interface{}) {
 		for _, fn := range fns {

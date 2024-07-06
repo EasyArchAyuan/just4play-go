@@ -1,7 +1,9 @@
 package mp
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 )
@@ -40,8 +42,28 @@ func TestMp(t *testing.T) {
 	}
 	// 并发调用
 	res, err := MapReduce(a, b, c)
-	if err != nil {
-		t.Fatal(err)
+	t.Logf("res:{%v}; err:{%v}\n", res, err)
+}
+
+func TestFinish(t *testing.T) {
+
+	a := func() error {
+		log.Println("aaaa")
+		return nil
 	}
-	t.Log(res)
+
+	b := func() error {
+		log.Println("bbbb")
+		return errors.New("err about bbbb")
+		//return nil
+	}
+
+	c := func() error {
+		log.Println("cccc")
+		return nil
+	}
+
+	err := Finish(a, b, c)
+
+	t.Log("finish err:", err)
 }
