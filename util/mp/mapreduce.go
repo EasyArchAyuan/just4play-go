@@ -181,6 +181,9 @@ func MapReduce(generate GenerateFunc, mapper MapperFunc, reducer ReducerFunc) (i
 
 // Finish 批量执行函数
 func Finish(fns ...func() error) error {
+	if len(fns) == 0 {
+		return nil
+	}
 	_, err := MapReduce(func(source chan<- interface{}) {
 		for _, fn := range fns {
 			source <- fn
