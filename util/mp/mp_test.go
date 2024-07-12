@@ -30,6 +30,7 @@ func TestMp(t *testing.T) {
 	b := func(item interface{}, writer Writer, cancel func(err error)) {
 		tmp := item.(int) + 1
 		writer.Writer(tmp)
+
 	}
 	// 数据合并
 	c := func(pipe <-chan interface{}, writer Writer, cancel func(err error)) {

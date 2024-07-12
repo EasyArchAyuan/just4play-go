@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -37,12 +38,37 @@ func outputStream(ch chan int) {
 		fmt.Println(item)
 	})
 }
+func inputStream2(ch chan string) {
+	id := 0
+	for {
+		ch <- strconv.Itoa(id)
+		time.Sleep(time.Millisecond * 500)
+		id++
+	}
+}
+
+func outputStream2(ch chan string) {
+	From(func(source chan<- interface{}) {
+		// Notice 轮询ch，有数据往 source中 塞入
+		for c := range ch {
+			source <- c
+		}
+	}). // 并发处理
+		Parallel(func(item interface{}) {
+			id := item.(string)
+			fmt.Printf("处理 %v 的日志! \n", id)
+		})
+}
 
 func TestFx(t *testing.T) {
 	ch := make(chan int)
 
 	go inputStream(ch)
 	go outputStream(ch)
+
+	ch2 := make(chan string)
+	go inputStream2(ch2)
+	go outputStream2(ch2)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
@@ -57,6 +83,15 @@ func TestFrom(t *testing.T) {
 		}
 	})
 	t.Log(s)
+}
+
+func TestJust(t *testing.T) {
+	Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).
+		Split(4).
+		ForEach(func(item interface{}) {
+			val := item.([]interface{})
+			fmt.Println(len(val), val)
+		})
 }
 
 func TestFilter(t *testing.T) {
@@ -165,4 +200,65 @@ func TestMapReduce(t *testing.T) {
 	} else {
 		fmt.Println("result: ", result)
 	}
+}
+
+type Alerts struct {
+	Labels *Labels `json:"labels"`
+}
+type Labels struct {
+	RulesId int64 `json:"rules_id"`
+}
+
+func TestName(t *testing.T) {
+	alerts := []*Alerts{
+		{
+			Labels: &Labels{
+				RulesId: 1,
+			},
+		},
+		{
+			Labels: &Labels{
+				RulesId: 2,
+			},
+		},
+		{
+			Labels: &Labels{
+				RulesId: 3,
+			},
+		},
+		{
+			Labels: &Labels{
+				RulesId: 2,
+			},
+		},
+		{
+			Labels: &Labels{
+				RulesId: 1,
+			},
+		},
+	}
+	ruleIds, _ := From(func(source chan<- any) {
+		for _, v := range alerts {
+			source <- v
+		}
+	}).Map(func(item any) any {
+		alert := item.(*Alerts)
+		return alert.Labels.RulesId
+	}).Distinct(func(item any) any {
+		return item
+	}).Reduce(func(pipe <-chan any) (any, error) {
+		var ruleIds []int64
+		for item := range pipe {
+			ruleIds = append(ruleIds, item.(int64))
+		}
+		return ruleIds, nil
+	})
+	fmt.Println(ruleIds)
+
+	var unresolvedAlertFound, resolvedAlertFound bool
+	fmt.Println(unresolvedAlertFound, resolvedAlertFound)
+}
+
+func (time Option) name() {
+
 }
